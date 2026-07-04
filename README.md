@@ -46,7 +46,7 @@ It is specifically designed for high-performance use cases where list allocation
 import com.rahulrav.fr.BlockLinkedList
 
 fun main() {
-    // Create a list with an initial warm capacity of 4 blocks (up to 256 elements)
+    // Create a list with an initial capacity of 4 blocks (up to 256 elements)
     val list = BlockLinkedList<String>(blkCount = 4)
 
     // Append elements using the += operator (guaranteed O(1) time)
@@ -77,17 +77,11 @@ Using the `.use` extension function ensures that the list is immediately cleared
 import com.rahulrav.fr.BlockLinkedList
 import com.rahulrav.fr.use
 
-fun processItems() {
-    val tempList = BlockLinkedList<Int>()
-    
-    tempList.use {
-        for (i in 1..1000) {
-            tempList += i
-        }
-        
-        // Do processing...
-        println("Processed ${tempList.size} items.")
-    } // tempList is automatically cleared here and its blocks are recycled
+fun doWork(list: BlockLinkedList<Int>) {
+    list.use {
+        // Use the list, and automatically release all the _excess_ blocks to the
+        // ThreadLocal pool when done.
+    }
 }
 ```
 

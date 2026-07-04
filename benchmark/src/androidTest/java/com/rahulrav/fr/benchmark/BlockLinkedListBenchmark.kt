@@ -6,6 +6,7 @@ import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.rahulrav.fr.BlockLinkedList
+import com.rahulrav.fr.use
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,22 +21,24 @@ class BlockLinkedListBenchmark {
     fun insertBenchmark() {
         val list = BlockLinkedList<Int>()
         benchmarkRule.measureRepeated {
-            repeat(2 * 64) {
-                list += it
+            list.use {
+                repeat(2 * 64) {
+                    list += it
+                }
             }
-            list.clear()
         }
     }
 
     @Test
     fun forEachBenchmark() {
         val list = BlockLinkedList<Int>()
-        repeat(5 * 64) {
-            list += it
+        list.use {
+            repeat(5 * 64) {
+                list += it
+            }
+            benchmarkRule.measureRepeated {
+                list.forEach { BlackHole.consume(it) }
+            }
         }
-        benchmarkRule.measureRepeated {
-            list.forEach { BlackHole.consume(it) }
-        }
-        list.clear()
     }
 }

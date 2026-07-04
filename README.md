@@ -19,7 +19,7 @@ It is specifically designed for high-performance use cases where list allocation
 
 | Operation | `BlockLinkedList` | `ArrayList` | `LinkedList` | Description |
 | :--- | :---: | :---: | :---: | :--- |
-| **Append (`+=` / `add`)** | $\mathcal{O}(1)  amortized / $\mathcal{O}(N)$ worst-case $ | $\mathcal{O}(1)$ amortized / $\mathcal{O}(N)$ worst-case | $\mathcal{O}(1)$ | Avoids array-copy resizing penalties completely. |
+| **Append (`+=` / `add`)** | $\mathcal{O}(1)$ amortized / $\mathcal{O}(N)$ worst-case | $\mathcal{O}(1)$ amortized / $\mathcal{O}(N)$ worst-case | $\mathcal{O}(1)$ | Avoids array-copy resizing penalty unless you exceed `blkCount` blocks. |
 | **Random Access (`get`)** | **$\mathcal{O}(1)$** | $\mathcal{O}(1)$ | $\mathcal{O}(N)$ | Bitwise-shift block index resolution. |
 | **Iteration (`forEach`)** | **$\mathcal{O}(N)$** | $\mathcal{O}(N)$ | $\mathcal{O}(N)$ | Linear time with very low traversal overhead. |
 | **Memory Allocation** | **Low / Pooled** | High (Reallocations) | High (Per-node wrappers) | Recycles internal array blocks automatically. |

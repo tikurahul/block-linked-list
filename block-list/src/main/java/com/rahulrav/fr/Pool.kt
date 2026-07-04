@@ -24,8 +24,7 @@ internal class Pool<T>(
     }
 
     // This class is intentionally lock free.
-    // This is because, the only place where we recycle objects in the pool is in the
-    // AbstractTraceSink and that effectively behaves as-if it were single threaded.
+    // This is because, the only place where we recycle objects is using a ThreadLocal pool.
     private val scrapPool: ArrayDeque<T> = ArrayDeque(size)
 
     init {

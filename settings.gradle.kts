@@ -22,7 +22,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "fast-reset-list"
+rootProject.name = "block-linked-list"
 include(":app")
-include(":fast-reset")
+include(":block-list")
 include(":benchmark")

@@ -31,7 +31,7 @@ android {
 }
 
 dependencies {
-    androidTestImplementation(project(":fast-reset"))
+    androidTestImplementation(project(":block-list"))
     androidTestImplementation(libs.androidx.benchmark.junit4)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.runner)

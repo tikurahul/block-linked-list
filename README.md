@@ -29,6 +29,7 @@ It is specifically designed for high-performance use cases where list allocation
 ## How It Works
 
 `BlockLinkedList` represents a hybrid approach:
+
 1. **Blocked Storage**: The list consists of a chain of internal `Block` objects. Each block wraps an array of size $2^6 = 64$ (`BLOCK_CAPACITY`).
 2. **Bitwise Indexing**: When looking up an element at a given absolute index:
    - The block offset is resolved via `index.ushr(6)` (dividing by 64).
@@ -40,6 +41,7 @@ It is specifically designed for high-performance use cases where list allocation
 ## Usage Examples
 
 ### 1. Basic Operations
+
 ```kotlin
 import com.rahulrav.fr.BlockLinkedList
 
@@ -68,6 +70,7 @@ fun main() {
 ```
 
 ### 2. Automatic Lifecycle Management with `.use`
+
 Using the `.use` extension function ensures that the list is immediately cleared and its blocks are returned to the pool, even if an exception occurs during execution. This prevents memory leaks.
 
 ```kotlin

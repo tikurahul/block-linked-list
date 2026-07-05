@@ -54,7 +54,7 @@ public class BlockLinkedList<T>(
 
     @JvmField
     @PublishedApi
-    internal var blkList = MutableList(size = this.blkCount) { blockPool().obtain() }
+    internal var blkArray: Array<Block> = Array(size = this.blkCount) { blockPool().obtain() }
 
     public var size: Int = 0
         internal set
@@ -63,7 +63,7 @@ public class BlockLinkedList<T>(
     internal var blkIndex: Int = 0
 
     @JvmField
-    internal var currentBlk: Block = blkList[0]
+    internal var currentBlk: Block = blkArray[0]
 
     /**
      * Appends the specified [value] to the end of this list.
@@ -78,12 +78,19 @@ public class BlockLinkedList<T>(
             currentBlk.add(value)
         } else {
             blkIndex += 1
-            val next: Block = if (blkIndex < blkList.size) {
-                blkList[blkIndex]
+            val next: Block = if (blkIndex < blkArray.size) {
+                blkArray[blkIndex]
             } else {
-                val next = blockPool().obtain()
-                blkList.add(next)
-                next
+                // We ran out of blocks
+                val placeholder = blockPool().obtain()
+                val newBlkArray = Array(size = blkCount * 2) { placeholder }
+                System.arraycopy(blkArray, 0, newBlkArray, 0, blkCount)
+                for (i in blkCount until newBlkArray.size) {
+                    newBlkArray[i] = blockPool().obtain()
+                }
+                placeholder.recycle()
+                blkArray = newBlkArray
+                blkArray[blkIndex]
             }
             next.add(value)
             currentBlk = next
@@ -103,7 +110,7 @@ public class BlockLinkedList<T>(
         val offset = index.ushr(bitCount = BIT_COUNT)
         // index % 64
         val blkIndex = index.and(BLOCK_CAPACITY - 1)
-        val block = blkList[offset]
+        val block = blkArray[offset]
         return block[blkIndex]
     }
 
@@ -119,8 +126,8 @@ public class BlockLinkedList<T>(
         size = 0
         // Check if we allocated more blocks
         // If not, all we need to do is to clear existing blocks.
-        if (blkList.size <= blkCount) {
-            for (block in blkList) {
+        if (blkArray.size <= blkCount) {
+            for (block in blkArray) {
                 // Check if the block is actually being used before calling clear()
                 // If we found a completely unused block, then we can stop.
                 if (block.bIdx <= 0) break
@@ -128,18 +135,22 @@ public class BlockLinkedList<T>(
             }
         } else {
             // Recycle all the excess blocks
-            for (i in blkCount until blkList.size) {
-                blkList[i].recycle()
+            for (i in blkCount until blkArray.size) {
+                blkArray[i].recycle()
             }
-            while (blkList.size > blkCount) {
-                blkList.removeLastOrNull()
+            while (blkArray.size > blkCount) {
+                val placeholder = blockPool().obtain()
+                val newBlkArray = Array(size = blkCount) { placeholder }
+                System.arraycopy(blkArray, 0, newBlkArray, 0, blkCount)
+                blkArray = newBlkArray
+                placeholder.recycle()
             }
             // Clear the remaining blocks
-            for (block in blkList) {
+            for (block in blkArray) {
                 block.clear()
             }
         }
-        currentBlk = blkList[blkIndex]
+        currentBlk = blkArray[blkIndex]
     }
 
     /**
@@ -157,8 +168,8 @@ public class BlockLinkedList<T>(
         var blkIndex = 0
         // The absolute index
         var absIndex = 0
-        while (blkIndex < blkList.size && absIndex < size) {
-            val block = blkList[blkIndex]
+        while (blkIndex < blkArray.size && absIndex < size) {
+            val block = blkArray[blkIndex]
             // The number of items in the block
             val count = block.bIdx
             // Iterate through, and proceed to the next block

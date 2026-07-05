@@ -34,7 +34,7 @@ class BlockLinkedListTest {
             // There should always be 1 block at the very least.
             assertEquals(1, list.blkArray.size)
             repeat(BLOCK_CAPACITY + 1) {
-                list += "E $it"
+                list += "E$it"
             }
             assertEquals(1, list.blkIndex)
             assertEquals(BLOCK_CAPACITY + 1, list.size)

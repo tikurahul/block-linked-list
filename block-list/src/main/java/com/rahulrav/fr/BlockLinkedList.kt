@@ -26,8 +26,7 @@ internal inline fun blockPool(): Pool<Block> = BLOCK_POOL.get()!!
  * the blocks when [clear] is called.
  *
  * ### Performance Characteristics
- * - **Append (`+=` / [plusAssign])**: O(1) amortized and worst-case. Unlike `ArrayList`, it never
- *   triggers a full array copy when growing.
+ * - **Append (`+=` / [plusAssign])**: O(1) amortized and O(n) worst-case when you exceed [blkCount].
  * - **Random Access (`[]` / [get])**: O(1) constant-time lookup using bitwise shifts to resolve
  *   block offsets instantly.
  * - **Iteration ([forEach] / [forEachIndexed])**: O(N) linear time with very low overhead.

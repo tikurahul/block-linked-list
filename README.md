@@ -11,9 +11,6 @@ no longer needed.
 ---
 
 ## Key Features
-
-- **No Full Array Copying**: Unlike an `ArrayList`, `BlockLinkedList` never triggers a full array
-  copy or reallocation of all elements when growing in size.
 - **$\mathcal{O}(1)$ Random Access**: Constant-time lookup of elements using rapid bitwise shifts
   to resolve block offsets instantly.
 - **Low GC Pressure**: Implements eager recycling of blocks back into a `ThreadLocal` pool upon
@@ -40,10 +37,7 @@ no longer needed.
 
 1. **Blocked Storage**: The list consists of a array of internal `Block` objects. Each block wraps
    an array of size $2^6 = 64$ (`BLOCK_CAPACITY`).
-2. **Bitwise Indexing**: When looking up an element at a given absolute index:
-    - The block offset is resolved via `index.ushr(6)` (dividing by 64).
-    - The local index within that block is resolved via `index.and(63)` (modulo 64).
-3. **Thread-Local Block Pool**: When a list is `clear()`ed, blocks exceeding the configured warm
+2. **Thread-Local Block Pool**: When a list is `clear()`ed, blocks exceeding the configured warm
    reserve count (`blkCount`) are returned to a thread-local object pool (`BLOCK_POOL`), allowing
    them to be instantly reused by other lists on the same thread without prompting heap allocation
    or garbage collection.

@@ -69,4 +69,3 @@ internal open class Pool<T>(
         return counter?.get() ?: 0L
     }
 }
-

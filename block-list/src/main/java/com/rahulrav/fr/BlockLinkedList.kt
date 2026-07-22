@@ -9,6 +9,14 @@ private const val BLOCK_POOL_SIZE = 256
 @PublishedApi
 internal val SENTINEL: Array<Any?> = arrayOfNulls(size = BLOCK_CAPACITY)
 
+// Only useful in the context of resizing blocks.
+
+internal val PLACEHOLDER_POOL = Pool(size = 1, isDebug = false) { owner ->
+    Block(owner = owner)
+}
+
+internal val PLACEHOLDER = PLACEHOLDER_POOL.obtain()
+
 internal val BLOCK_POOL = ThreadLocal.withInitial {
     Pool(size = BLOCK_POOL_SIZE, isDebug = false) { owner ->
         Block(owner = owner)
@@ -81,13 +89,11 @@ public class BlockLinkedList<T>(
                 blkArray[blkIndex]
             } else {
                 // We ran out of blocks
-                val placeholder = blockPool().obtain()
-                val newBlkArray = Array(size = blkCount * 2) { placeholder }
+                val newBlkArray = Array(size = blkCount * 2) { PLACEHOLDER }
                 System.arraycopy(blkArray, 0, newBlkArray, 0, blkCount)
                 for (i in blkCount until newBlkArray.size) {
                     newBlkArray[i] = blockPool().obtain()
                 }
-                placeholder.recycle()
                 blkArray = newBlkArray
                 blkArray[blkIndex]
             }
@@ -104,7 +110,7 @@ public class BlockLinkedList<T>(
      */
     @Suppress("NOTHING_TO_INLINE")
     public operator fun get(index: Int): T {
-        if (index !in 0..<size) throw IndexOutOfBoundsException("Index $index, Size: $size")
+        checkIndex(index)
         // index / 64
         val offset = index.ushr(bitCount = BIT_COUNT)
         // index % 64
@@ -137,12 +143,10 @@ public class BlockLinkedList<T>(
             for (i in blkCount until blkArray.size) {
                 blkArray[i].recycle()
             }
-            while (blkArray.size > blkCount) {
-                val placeholder = blockPool().obtain()
-                val newBlkArray = Array(size = blkCount) { placeholder }
+            if (blkArray.size > blkCount) {
+                val newBlkArray = Array(size = blkCount) { PLACEHOLDER }
                 System.arraycopy(blkArray, 0, newBlkArray, 0, blkCount)
                 blkArray = newBlkArray
-                placeholder.recycle()
             }
             // Clear the remaining blocks
             for (block in blkArray) {
@@ -186,11 +190,17 @@ public class BlockLinkedList<T>(
     @Suppress("NOTHING_TO_INLINE")
     public inline fun isEmpty() = size == 0
 
-    /**
-     * Returns `true` if the list is not empty (contains at least one element), `false` otherwise.
-     */
     @Suppress("NOTHING_TO_INLINE")
     public inline fun isNotEmpty() = size > 0
+
+    // Private helpers
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun checkIndex(index: Int) {
+        // IJ really wants me to use `.indices` here. So this is my workaround for that.
+        if (index < 0) throw IndexOutOfBoundsException("Index: $index, Size: $size")
+        if (index >= size) throw IndexOutOfBoundsException("Index: $index, Size: $size")
+    }
 }
 
 /**
